@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: pdfhub_web
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+      # Update your app's DB URI to use new user:
+      # MONGO_URI=mongodb://Tanzeem:tanzeem123@mongo:27017
+    depends_on:
+      - mongo
+    networks:
+      - pdfhub_network
+
+  mongo:
+    image: mongo:4.4
+    container_name: pdfhub_mongo
+    # ⚠️ Notice: No MONGO_INITDB_ROOT_USERNAME/PASSWORD here
+    # Because you already created the user manually inside DB.
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - pdfhub_network
+
+  mongo-express:
+    image: mongo-express:4.4
+    container_name: pdfhub_mongo_express
+    ports:
+      - "8085:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_AUTH_DATABASE: pdfapp
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: false
+      ME_CONFIG_MONGODB_ADMINUSERNAME: pdfhubuser   # your updated DB user
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pdfhub123 # your updated DB password
+      ME_CONFIG_BASICAUTH_USERNAME: admin        # for Mongo Express UI login
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongo
+    networks:
+      - pdfhub_network
+
+volumes:
+  mongo_data:
+
+networks:
+  pdfhub_network:
+    driver: bridge

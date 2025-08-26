@@ -1,0 +1,43 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual environments
+venv/
+ENV/
+.env/
+*.env
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git files
+.git
+.gitignore
+
+# Build & dist artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+logs/
+
+# Media/static (if generated dynamically)
+media/
+staticfiles/
+
+# Tests & coverage
+tests/
+coverage/
+.pytest_cache/
