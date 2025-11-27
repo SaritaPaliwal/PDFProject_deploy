@@ -1,19 +1,18 @@
 # -----------------------------
 # Stage 1: Base image
 # -----------------------------
-FROM python:3.11-slim  
- # Base image (Python 3.11 slim version)
+# FROM nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085/2401067/python:3.11-slim
+FROM mirror.gcr.io/library/python:3.11-slim
+
+# FROM python:3.11-slim
 
 # -----------------------------
 # Stage 2: Environment settings
 # -----------------------------
-ENV PYTHONDONTWRITEBYTECODE=1  
- # Prevents Python from writing .pyc files
-ENV PYTHONUNBUFFERED=1         
- # Ensures logs are shown directly in terminal
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Set default working directory
-WORKDIR /app   # This is where your code will be copied inside container
+WORKDIR /app
 
 # -----------------------------
 # Stage 3: System dependencies
@@ -48,16 +47,12 @@ RUN pip install --upgrade pip setuptools wheel \
 # -----------------------------
 # Stage 5: Project files
 # -----------------------------
-# Copy the whole project folder into /app
-COPY . .
-
-# IMPORTANT: change working directory to where manage.py is located
-# Your manage.py path: D:\PDFProject\djangodemo\project\manage.py
-# So inside container it will be: /app/djangodemo/project
-WORKDIR /app/PDFhub
+COPY . /app/
 
 # -----------------------------
-# Stage 6: Run Django app
+# Stage 6: Expose & run
 # -----------------------------
-# Run Django server (port 8000)
+EXPOSE 8000
+
+# Development (switch to gunicorn for prod)
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
