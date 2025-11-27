@@ -1,13 +1,16 @@
 # -----------------------------
 # Stage 1: Base image
 # -----------------------------
-FROM python:3.11-slim   # Base image (Python 3.11 slim version)
+FROM python:3.11-slim  
+ # Base image (Python 3.11 slim version)
 
 # -----------------------------
 # Stage 2: Environment settings
 # -----------------------------
-ENV PYTHONDONTWRITEBYTECODE=1   # Prevents Python from writing .pyc files
-ENV PYTHONUNBUFFERED=1          # Ensures logs are shown directly in terminal
+ENV PYTHONDONTWRITEBYTECODE=1  
+ # Prevents Python from writing .pyc files
+ENV PYTHONUNBUFFERED=1         
+ # Ensures logs are shown directly in terminal
 
 # Set default working directory
 WORKDIR /app   # This is where your code will be copied inside container
