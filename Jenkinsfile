@@ -12,6 +12,7 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+
   - name: dind
     image: docker:dind
     securityContext:
@@ -24,18 +25,24 @@ spec:
     - name: DOCKER_TLS_CERTDIR
       value: ""
     volumeMounts:
-    - mountPath: /home/jenkins/agent
-      name: workspace-volume
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
 
   - name: sonar-scanner
     image: sonarsource/sonar-scanner-cli
     command: ["cat"]
     tty: true
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
 
   - name: kubectl
     image: bitnami/kubectl:latest
     command: ["cat"]
     tty: true
+    volumeMounts:
+    - name: workspace-volume
+      mountPath: /home/jenkins/agent
 
   volumes:
   - name: workspace-volume
@@ -44,9 +51,7 @@ spec:
         }
     }
 
-    options {
-        skipDefaultCheckout()
-    }
+    options { skipDefaultCheckout() }
 
     environment {
         DOCKER_IMAGE = "pdfhub"
@@ -60,10 +65,8 @@ spec:
 
         stage('Checkout Code') {
             steps {
-                sh '''
-                    rm -rf *
-                    git clone https://github.com/SaritaPaliwal/PDFProject_deploy.git .
-                '''
+                deleteDir()
+                sh "git clone https://github.com/SaritaPaliwal/PDFProject_deploy.git ."
                 echo "✔ Source code cloned successfully"
             }
         }
@@ -79,7 +82,7 @@ spec:
             }
         }
 
-        stage('Run Tests & Generate Coverage') {
+        stage('Run Tests & Coverage') {
             steps {
                 container('dind') {
                     sh """
@@ -98,6 +101,8 @@ spec:
                 container('sonar-scanner') {
                     sh """
                         sonar-scanner \
+                        -Dsonar.projectKey=pdfhub \
+                        -Dsonar.projectName=PDFhub \
                         -Dsonar.host.url=http://sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
                         -Dsonar.token=${SONAR_TOKEN} \
                         -Dsonar.python.coverage.reportPaths=coverage.xml
@@ -106,33 +111,29 @@ spec:
             }
         }
 
-
-        stage('Login to Nexus Registry') {
+        stage('Login to Nexus') {
             steps {
                 container('dind') {
                     sh """
-                        echo '🔐 Logging into Nexus registry...'
+                        echo 'Logging into Nexus registry...'
                         docker login ${REGISTRY_HOST} -u admin -p Changeme@2025
                     """
                 }
             }
         }
 
-        stage('Tag & Push Docker Image to Nexus') {
+        stage('Push Docker Image') {
             steps {
                 container('dind') {
                     sh """
-                        echo '📌 Tagging image...'
                         docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
-
-                        echo '📤 Pushing image to Nexus...'
                         docker push ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
                     """
                 }
             }
         }
 
-        stage('Deploy PDFhub to Kubernetes') {
+        stage('Deploy to Kubernetes') {
             steps {
                 container('kubectl') {
                     sh """
@@ -147,7 +148,7 @@ spec:
 
     post {
         success { echo "🎉 PDFhub CI/CD Pipeline completed successfully!" }
-        failure { echo "❌ PDFhub CI/CD Pipeline failed" }
+        failure { echo "❌ Pipeline failed" }
         always  { echo "🔄 Pipeline finished" }
     }
 }
