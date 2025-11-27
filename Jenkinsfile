@@ -50,10 +50,10 @@ spec:
 
     environment {
         DOCKER_IMAGE = "pdfhub"
-        SONAR_TOKEN = "sqp_5c6bcf57fec846bce3562d1d777b633b4360c411"
+        SONAR_TOKEN = "sqp_cd243d345da3f145b53b1165b44d7a663d353fbc"
         REGISTRY_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
-        REGISTRY = "${REGISTRY_HOST}/2401067"
-        NAMESPACE = "2401067"
+        REGISTRY = "${REGISTRY_HOST}/2401146"
+        NAMESPACE = "2401146"
     }
 
     stages {
@@ -62,7 +62,7 @@ spec:
             steps {
                 sh '''
                     rm -rf *
-                    git clone https://github.com/Tanzeem14/PDFhub_Deploy.git .
+                    git clone https://github.com/SaritaPaliwal/PDFProject_deploy.git .
                 '''
                 echo "✔ Source code cloned successfully"
             }
