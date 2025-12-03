@@ -55,7 +55,7 @@ spec:
 
     environment {
         DOCKER_IMAGE = "pdfhub"
-        SONAR_TOKEN = "sqp_cd243d345da3f145b53b1165b44d7a663d353fbc"
+        SONAR_TOKEN = "sqp_dca7bdafc7a5c9af27ff2a09bcae4d283cd83a27"
         REGISTRY_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         REGISTRY = "${REGISTRY_HOST}/2401146"
         NAMESPACE = "2401146"
