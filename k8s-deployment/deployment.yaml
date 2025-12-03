@@ -13,7 +13,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: pdfhub-static-pvc
-  namespace: "2401067"
+  namespace: "2401146"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -44,7 +44,7 @@ spec:
 
       containers:
         - name: pdfhub-container
-          image: 127.0.0.1:30085/2401067/pdfhub:latest
+          image: 127.0.0.1:30085/2401146/pdfhub:latest
           imagePullPolicy: Always
 
           ports:
