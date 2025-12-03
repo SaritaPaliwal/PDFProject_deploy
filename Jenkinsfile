@@ -11,9 +11,8 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
+  # Workspace volume ownership for Jenkins (not for Docker)
   securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
     fsGroup: 1000
 
   containers:
@@ -21,6 +20,8 @@ spec:
     image: docker:dind
     securityContext:
       privileged: true
+      runAsUser: 0            # run as root (required)
+      runAsGroup: 0
     command: ["dockerd-entrypoint.sh"]
     args:
       - "--host=tcp://0.0.0.0:2375"
@@ -51,6 +52,7 @@ spec:
   volumes:
   - name: workspace-volume
     emptyDir: {}
+
 
 """
         }
