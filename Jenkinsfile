@@ -11,48 +11,43 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
-  # Workspace volume ownership for Jenkins (not for Docker)
-  securityContext:
-    fsGroup: 1000
-
   containers:
+
   - name: dind
     image: docker:dind
     securityContext:
       privileged: true
-      runAsUser: 0            # run as root (required)
-      runAsGroup: 0
     command: ["dockerd-entrypoint.sh"]
     args:
       - "--host=tcp://0.0.0.0:2375"
       - "--insecure-registry=nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
     env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
+      - name: DOCKER_TLS_CERTDIR
+        value: ""
     volumeMounts:
-    - name: workspace-volume
-      mountPath: /home/jenkins/agent
+      - name: docker-storage
+        mountPath: /var/lib/docker
+      - name: workspace-volume
+        mountPath: /home/jenkins/agent
 
   - name: sonar-scanner
     image: sonarsource/sonar-scanner-cli
     command: ["cat"]
     tty: true
-    volumeMounts:
-    - name: workspace-volume
-      mountPath: /home/jenkins/agent
 
   - name: kubectl
     image: bitnami/kubectl:latest
     command: ["cat"]
     tty: true
-    volumeMounts:
-    - name: workspace-volume
-      mountPath: /home/jenkins/agent
+    securityContext:
+      runAsUser: 0
+      readOnlyRootFilesystem: false
 
   volumes:
-  - name: workspace-volume
-    emptyDir: {}
-
+    - name: docker-storage
+      emptyDir: {}
+    - name: workspace-volume
+      emptyDir: {}
 
 """
         }
