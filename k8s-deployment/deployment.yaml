@@ -1,0 +1,138 @@
+# -------------------------------
+# Namespace
+# -------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "2401146"
+---
+# -------------------------------
+# PersistentVolumeClaim
+# -------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pdfhub-static-pvc
+  namespace: "2401067"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# -------------------------------
+# Deployment
+# -------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdfhub-deployment
+  namespace: "2401146"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pdfhub
+  template:
+    metadata:
+      labels:
+        app: pdfhub
+    spec:
+      imagePullSecrets:
+        - name: nexus-secret
+
+      containers:
+        - name: pdfhub-container
+          image: 127.0.0.1:30085/2401067/pdfhub:latest
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 8000
+
+          env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+
+            # Correct Django settings
+            - name: DJANGO_SETTINGS_MODULE
+              value: "project.settings"
+
+            - name: MONGO_URI
+              value: "mongodb://pdfhub-mongo:27017"
+
+            # Force gunicorn to use 1 worker (prevents OOM)
+            - name: GUNICORN_CMD_ARGS
+              value: "--workers 1 --timeout 180"
+
+          volumeMounts:
+            - name: pdfhub-static
+              mountPath: /app/static
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 40
+            periodSeconds: 30
+
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "1"
+              memory: "4Gi"
+
+      volumes:
+        - name: pdfhub-static
+          persistentVolumeClaim:
+            claimName: pdfhub-static-pvc
+---
+# -------------------------------
+# Service
+# -------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: pdfhub-service
+  namespace: "2401146"
+spec:
+  selector:
+    app: pdfhub
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+# -------------------------------
+# Ingress
+# -------------------------------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pdfhub-ingress
+  namespace: "2401146"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: pdfhub.imcc.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pdfhub-service
+                port:
+                  number: 8000
