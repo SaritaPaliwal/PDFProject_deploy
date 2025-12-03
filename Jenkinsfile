@@ -122,12 +122,18 @@ spec:
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push Image') {
             steps {
                 container('dind') {
                     sh """
                         docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${DOCKER_IMAGE}:latest
+
                         docker push ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker push ${REGISTRY}/${DOCKER_IMAGE}:latest
+
+                        docker pull ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
+                        docker image ls
                     """
                 }
             }
@@ -136,16 +142,16 @@ spec:
         stage('Deploy to Kubernetes') {
             steps {
                 container('kubectl') {
-                    sh """
-                        kubectl apply -f k8s-deployment/deployment.yaml
-                        kubectl set image deployment/pdfhub-app pdfhub-container=${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER} -n ${NAMESPACE}
-                        kubectl rollout status deployment/pdfhub-app -n ${NAMESPACE}
-                    """
+                    dir('k8s-deployment') {
+                        sh """
+                            kubectl apply -f deployment.yaml -n ${NAMESPACE}
+                            
+                        """
+                    }
                 }
             }
         }
     }
-
     post {
         success { echo "🎉 PDFhub CI/CD Pipeline completed successfully!" }
         failure { echo "❌ Pipeline failed" }
