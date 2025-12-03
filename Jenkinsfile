@@ -55,7 +55,7 @@ spec:
 
     environment {
         DOCKER_IMAGE = "pdfhub"
-        SONAR_TOKEN = "sqp_dca7bdafc7a5c9af27ff2a09bcae4d283cd83a27"
+        SONAR_TOKEN = "sqp_a2c148e998eb8e7c3c262017011ef4c3e932cfd3"
         REGISTRY_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         REGISTRY = "${REGISTRY_HOST}/2401146"
         NAMESPACE = "2401146"
@@ -101,8 +101,8 @@ spec:
                 container('sonar-scanner') {
                     sh """
                         sonar-scanner \
-                        -Dsonar.projectKey=pdfhub \
-                        -Dsonar.projectName=PDFhub \
+                        -Dsonar.projectKey=2401146_pdfhub \
+                        -Dsonar.projectName=2401146_pdfhub \
                         -Dsonar.host.url=http://my-sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
                         -Dsonar.token=${SONAR_TOKEN} \
                         -Dsonar.python.coverage.reportPaths=coverage.xml
