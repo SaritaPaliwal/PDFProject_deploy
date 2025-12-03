@@ -11,8 +11,12 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
-  containers:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
 
+  containers:
   - name: dind
     image: docker:dind
     securityContext:
@@ -47,6 +51,7 @@ spec:
   volumes:
   - name: workspace-volume
     emptyDir: {}
+
 """
         }
     }
