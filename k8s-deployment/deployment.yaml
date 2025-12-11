@@ -15,6 +15,7 @@ metadata:
   name: pdfhub-static-pvc
   namespace: "2401146"
 spec:
+  stotageClassName: local-path
   accessModes:
     - ReadWriteOnce
   resources:
