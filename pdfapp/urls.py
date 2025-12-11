@@ -6,6 +6,7 @@ from django.views.generic import TemplateView
 from . import views
 from .views import register
 from .utils.edit import download_pdf, open_editor, save_pdf
+from django.http import HttpResponse
 
 urlpatterns = [
     path('', views.register, name='register'),
@@ -26,9 +27,13 @@ urlpatterns = [
     path('ai/', views.ai, name='ai'),
     path('summarization/', views.summarization_view, name='summarization'),
     path('translation/', views.translation_view, name='translation'),
+    path('health',health),
     
 ]
 
+def health(request):
+    return HttpResponse("OK", content_type="text/plain")
+    
 # Add media URL patterns in development mode
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
