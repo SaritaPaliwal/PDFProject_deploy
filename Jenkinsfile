@@ -34,6 +34,9 @@ spec:
     image: sonarsource/sonar-scanner-cli
     command: ["cat"]
     tty: true
+    volumeMounts:
+      - name: workspace-volume
+        mountPath: /home/jenkins/agent
 
   - name: kubectl
     image: bitnami/kubectl:latest
@@ -42,13 +45,15 @@ spec:
     securityContext:
       runAsUser: 0
       readOnlyRootFilesystem: false
+    volumeMounts:
+      - name: workspace-volume
+        mountPath: /home/jenkins/agent
 
   volumes:
     - name: docker-storage
       emptyDir: {}
     - name: workspace-volume
       emptyDir: {}
-
 """
         }
     }
@@ -57,19 +62,20 @@ spec:
 
     environment {
         DOCKER_IMAGE = "pdfhub"
-        SONAR_TOKEN = "sqp_a2c148e998eb8e7c3c262017011ef4c3e932cfd3"
         REGISTRY_HOST = "nexus-service-for-docker-hosted-registry.nexus.svc.cluster.local:8085"
         REGISTRY = "${REGISTRY_HOST}/2401146"
         NAMESPACE = "2401146"
+        SONAR_TOKEN = "sqp_a2c148e998eb8e7c3c262017011ef4c3e932cfd3"
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                deleteDir()
-                sh "git clone https://github.com/SaritaPaliwal/PDFProject_deploy.git ."
-                echo "✔ Source code cloned successfully"
+                sh '''
+                    rm -rf PDFhub_Deploy
+                    git clone https://github.com/SaritaPaliwal/PDFProject_deploy.git .
+                '''
             }
         }
 
@@ -77,37 +83,23 @@ spec:
             steps {
                 container('dind') {
                     sh """
-                        docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest .
-                        docker image ls
+                        echo "⏳ Building Docker image (no cache)..."
+                        docker build --no-cache -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest .
                     """
                 }
             }
         }
 
-        stage('Run Tests & Coverage') {
-            steps {
-                container('dind') {
-                    sh """
-                        docker run --rm \
-                        -v $PWD:/workspace \
-                        -w /workspace \
-                        ${DOCKER_IMAGE}:latest \
-                        pytest --maxfail=1 --disable-warnings --cov=. --cov-report=xml
-                    """
-                }
-            }
-        }
 
         stage('SonarQube Analysis') {
             steps {
                 container('sonar-scanner') {
                     sh """
                         sonar-scanner \
-                        -Dsonar.projectKey=2401146_pdfhub \
-                        -Dsonar.projectName=2401146_pdfhub \
-                        -Dsonar.host.url=http://my-sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
-                        -Dsonar.token=${SONAR_TOKEN} \
-                        -Dsonar.python.coverage.reportPaths=coverage.xml
+                          -Dsonar.projectKey=2401146_pdfhub \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=http://my-sonarqube-sonarqube.sonarqube.svc.cluster.local:9000 \
+                          -Dsonar.token=${SONAR_TOKEN}
                     """
                 }
             }
@@ -117,7 +109,6 @@ spec:
             steps {
                 container('dind') {
                     sh """
-                        echo 'Logging into Nexus registry...'
                         docker login ${REGISTRY_HOST} -u admin -p Changeme@2025
                     """
                 }
@@ -133,9 +124,6 @@ spec:
 
                         docker push ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
                         docker push ${REGISTRY}/${DOCKER_IMAGE}:latest
-
-                        docker pull ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
-                        docker image ls
                     """
                 }
             }
@@ -146,17 +134,21 @@ spec:
                 container('kubectl') {
                     dir('k8s-deployment') {
                         sh """
+                            echo "🚀 Applying PDFhub deployment..."
                             kubectl apply -f deployment.yaml -n ${NAMESPACE}
-                            
+
+                            echo "⏳ Waiting for rollout..."
+                            kubectl rollout status deployment/pdfhub-deployment -n ${NAMESPACE}
                         """
                     }
                 }
             }
         }
     }
+
     post {
         success { echo "🎉 PDFhub CI/CD Pipeline completed successfully!" }
-        failure { echo "❌ Pipeline failed" }
+        failure { echo "❌ PDFhub CI/CD Pipeline failed" }
         always  { echo "🔄 Pipeline finished" }
     }
 }

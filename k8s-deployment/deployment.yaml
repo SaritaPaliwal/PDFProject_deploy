@@ -5,22 +5,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: "2401146"
----
-# -------------------------------
-# PersistentVolumeClaim
-# -------------------------------
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: pdfhub-static-pvc
-  namespace: "2401146"
-spec:
-  storageClassName: local-path
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+
 ---
 # -------------------------------
 # Deployment
@@ -40,9 +25,6 @@ spec:
       labels:
         app: pdfhub
     spec:
-      imagePullSecrets:
-        - name: nexus-secret
-
       containers:
         - name: pdfhub-container
           image: 127.0.0.1:30085/2401146/pdfhub:latest
@@ -55,20 +37,14 @@ spec:
             - name: PYTHONUNBUFFERED
               value: "1"
 
-            # Correct Django settings
             - name: DJANGO_SETTINGS_MODULE
               value: "project.settings"
 
             - name: MONGO_URI
-              value: "mongodb://pdfhub-mongo:27017"
+              value: "mongodb://tanzeem:tanzeem123@my-mongodb.mongodb:27017/studentdb?authSource=studentdb"
 
-            # Force gunicorn to use 1 worker (prevents OOM)
             - name: GUNICORN_CMD_ARGS
               value: "--workers 1 --timeout 180"
-
-          volumeMounts:
-            - name: pdfhub-static
-              mountPath: /app/static
 
           readinessProbe:
             httpGet:
@@ -92,10 +68,6 @@ spec:
               cpu: "1"
               memory: "4Gi"
 
-      volumes:
-        - name: pdfhub-static
-          persistentVolumeClaim:
-            claimName: pdfhub-static-pvc
 ---
 # -------------------------------
 # Service
@@ -113,9 +85,11 @@ spec:
       port: 8000
       targetPort: 8000
   type: ClusterIP
+
 ---
 # -------------------------------
-# Ingress
+# -------------------------------
+# Ingress (Compatible version)
 # -------------------------------
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -123,14 +97,25 @@ metadata:
   name: pdfhub-ingress
   namespace: "2401146"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    # If later you use HTTPS, uncomment:
+    # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   rules:
     - host: pdfhub-2401146.imcc.com
       http:
         paths:
+          # Main application
           - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pdfhub-service
+                port:
+                  number: 8000
+
+          # Static files (NO slash at the end!)
+          - path: /static
             pathType: Prefix
             backend:
               service:

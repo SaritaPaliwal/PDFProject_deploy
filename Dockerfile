@@ -50,6 +50,12 @@ RUN pip install --upgrade pip setuptools wheel \
 COPY . /app/
 
 # -----------------------------
+# Stage 5.1: Collect static files
+# -----------------------------
+RUN python manage.py collectstatic --noinput
+
+
+# -----------------------------
 # Stage 6: Expose & run
 # -----------------------------
 EXPOSE 8000
