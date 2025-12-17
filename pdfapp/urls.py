@@ -27,13 +27,13 @@ urlpatterns = [
     path('ai/', views.ai, name='ai'),
     path('summarization/', views.summarization_view, name='summarization'),
     path('translation/', views.translation_view, name='translation'),
-    path('health',health),
+    # path('health',health),
     
 ]
 
 def health(request):
     return HttpResponse("OK", content_type="text/plain")
-    
+
 # Add media URL patterns in development mode
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
