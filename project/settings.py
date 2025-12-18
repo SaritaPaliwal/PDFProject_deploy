@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 import os
 
-POPPLER_PATH = r"C:\Users\lenovo\Downloads\Release-24.08.0-0\poppler-24.08.0\Library\bin"
+# POPPLER_PATH = r"C:\Users\lenovo\Downloads\Release-24.08.0-0\poppler-24.08.0\Library\bin"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
