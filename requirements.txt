@@ -1,4 +1,4 @@
-﻿﻿absl-py==2.3.1
+﻿absl-py==2.3.1
 asgiref==3.9.1
 astunparse==1.6.3
 bcrypt==4.3.0
@@ -82,4 +82,5 @@ pytest
 pytest-cov
 gunicorn
 whitenoise==6.6.0
+
 
