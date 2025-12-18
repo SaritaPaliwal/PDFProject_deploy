@@ -102,7 +102,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: pdfhub-2401146.imcc.com
+    - host: 2401146-pdfhub.imcc.com
       http:
         paths:
           # Main application
