@@ -40,7 +40,9 @@ SECRET_KEY = 'django-insecure-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+   "*"
+]
 
 
 # Application definition
@@ -61,6 +63,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'corsheaders.middleware.CorsMiddleware',  # CORS middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -70,6 +73,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Add these to your existing CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # For development only!
@@ -130,6 +134,9 @@ DATABASES = {
     }
 }
 
+# MongoDB (PDFhub)
+import os
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -165,8 +172,27 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+# -----------------------------
+# Static Files Configuration
+# -----------------------------
+STATIC_URL = '/static/'
+
+# Where collectstatic will put all files inside the container
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Include your project's /static folder so CSS appears in staticfiles/
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Whitenoise Storage (required for production)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Make sure static finders are enabled
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -196,6 +222,3 @@ LOGGING = {
 #     "sessions": None,
 #     "admin": None,
 # }
-
-
-
