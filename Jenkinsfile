@@ -84,7 +84,7 @@ spec:
                 container('dind') {
                     sh """
                         echo "⏳ Building Docker image (no cache)..."
-                        docker build --no-cache -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:latest .
+                        docker build --no-cache -t ${DOCKER_IMAGE}:${BUILD_NUMBER} -t ${DOCKER_IMAGE}:v2 .
                     """
                 }
             }
@@ -120,10 +120,10 @@ spec:
                 container('dind') {
                     sh """
                         docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
-                        docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${DOCKER_IMAGE}:latest
+                        docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${DOCKER_IMAGE}:v2
 
                         docker push ${REGISTRY}/${DOCKER_IMAGE}:${BUILD_NUMBER}
-                        docker push ${REGISTRY}/${DOCKER_IMAGE}:latest
+                        docker push ${REGISTRY}/${DOCKER_IMAGE}:v2
                     """
                 }
             }
