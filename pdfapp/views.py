@@ -108,6 +108,8 @@ def register(request):
 
 def login(request):
     if request.method == "POST":
+        db = get_db()
+        register_table = db.register
         email = request.POST['email'].strip()
         password = request.POST['password'].strip()
 
@@ -357,10 +359,14 @@ def admin_panel(request):
     return render(request, "adminpanel.html")
 
 def adminpanel_register(request):
+    db = get_db()
+    register_table = db.register
     users = list(register_table.find({}, {"_id": 0, "password": 0}))
     return render(request, "adminpanel_register.html", {"users": users})
 
 def adminpanel_register(request):
     # Fetch all registered users from the database
+    db = get_db()
+    register_table = db.register
     users = list(register_table.find({}, {"_id": 0, "password": 0}))  # Exclude _id and password for security
     return render(request, "adminpanel.html", {"users": users})
