@@ -41,7 +41,8 @@ spec:
               value: "project.settings"
 
             - name: MONGO_URI
-              value: "mongodb://tanzeem:tanzeem123@my-mongodb.mongodb:27017/studentdb?authSource=studentdb"
+              value: "mongodb://saritapaliwal:saritapaliwal123@my-mongodb.mongodb:27017/studentdb?authSource=admin"
+              
 
             - name: GUNICORN_CMD_ARGS
               value: "--workers 1 --timeout 180"
