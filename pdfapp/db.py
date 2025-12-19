@@ -1,4 +1,7 @@
+# db.py
 from pymongo import MongoClient
+from django.conf import settings
 
-client = MongoClient("mongodb://localhost:27017")
-db = client["pdfapp"]
+def get_db():
+    client = MongoClient(settings.MONGO_URI)
+    return client.studentdb

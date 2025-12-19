@@ -8,7 +8,7 @@ from django.contrib import messages
 import logging
 import bcrypt
 import datetime
-from pdfapp.db import db
+from pdfapp.db import get_db
 from pdfapp.utils.merge import merge_pdfs
 from pdfapp.utils.compress import compress_pdf
 from django.core.files.storage import default_storage
@@ -33,8 +33,6 @@ from django.views.decorators.csrf import csrf_exempt
 logger = logging.getLogger(__name__)
 
 
-register_table = db.register
-
 def generate_jwt(user):
     payload={
         'email':user['email'],
@@ -48,7 +46,11 @@ def generate_jwt(user):
 
 
 def register(request):
+    
     if request.method == "POST":
+        db=get_db()
+
+        register_table = db.register
         firstname = request.POST['firstname'].strip()
         lastname = request.POST['lastname'].strip()
         email = request.POST['email'].strip()
